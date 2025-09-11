@@ -5,6 +5,6 @@ A decorative dark theme inspired by the "Embiggen" layout for insanejournal, see
 Uploaded with permission from Tess, the original dev of Embiggen.
 
 
-![[images/bloodrush-screenshot]]
+![screenshot](images/bloodrush-screenshot.jpg)
 
 
