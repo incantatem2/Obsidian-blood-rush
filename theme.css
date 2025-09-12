@@ -1,11 +1,10 @@
 
 
+div.workspace-sidedock-vault-profile {
 
+background: #ffffff00 !important;
 
-
-
-
-
+}
 
 
 /* editor background */
@@ -312,3 +311,6 @@ body {
 ::-webkit-scrollbar-track{background:#191919 !important;}
 ::-webkit-scrollbar{width:10px !important;background:#191919 !important;}
 ::-webkit-scrollbar-thumb{background:#090909 !important;width:10px !important;border:0px solid transparent !important; border-radius:0px !important;}
+
+
+  
