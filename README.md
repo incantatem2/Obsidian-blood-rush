@@ -1,7 +1,3 @@
-# Important:
-My themes will now get published [here](https://obsidian-theme-cafe.neocities.org)
- and can be downloaded directly as zip files.
-
 
 # Blood Rush
 
