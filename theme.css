@@ -96,7 +96,7 @@ body {
 	--inline-title-weight: 200;
 
 	--font-text: 'segoe ui', sans-serif;
-	--font-text-size: 14px !important;
+	--font-text-size: 14px;
 
 	--file-line-width:600px;
 
