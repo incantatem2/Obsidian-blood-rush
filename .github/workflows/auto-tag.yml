@@ -1,0 +1,71 @@
+name: Auto release
+# When theme.css or manifest.json changes on main, release the version in
+# manifest.json. If that version was already released, this raises it based on
+# how many lines of theme.css changed (lines added plus lines removed):
+#   10 or fewer  patch  (1.0.3 to 1.0.4)
+#   11 to 50     minor  (1.0.3 to 1.1.0)
+#   51 or more   major  (1.0.3 to 2.0.0)
+# It also records the version in versions.json.
+on:
+  push:
+    branches: [main, master]
+    # The workflow file itself is listed so that merging this setup releases
+    # the current version right away.
+    paths: [theme.css, manifest.json, .github/workflows/auto-tag.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Pick the version, tag it, and start the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          version=$(jq -r .version manifest.json)
+          if git ls-remote --exit-code --tags origin "refs/tags/${version}" >/dev/null; then
+            if [ "${GITHUB_EVENT_NAME}" != "push" ]; then
+              echo "::warning::Tag ${version} already exists, so no release was made."
+              exit 0
+            fi
+            lines=0
+            if git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+              lines=$(git diff --numstat "${BEFORE}" HEAD -- theme.css | awk '{s+=$1+$2} END {print s+0}')
+            fi
+            if [ "${lines}" -eq 0 ]; then
+              echo "::notice::Tag ${version} already exists and theme.css did not change, so no release was made."
+              exit 0
+            fi
+            IFS=. read -r major minor patch <<< "${version}"
+            if [ "${lines}" -gt 50 ]; then
+              version="$((major + 1)).0.0"
+            elif [ "${lines}" -gt 10 ]; then
+              version="${major}.$((minor + 1)).0"
+            else
+              version="${major}.${minor}.$((patch + 1))"
+            fi
+            echo "theme.css changed by ${lines} lines, so the new version is ${version}."
+            jq --tab --arg v "${version}" '.version = $v' manifest.json > manifest.tmp
+            mv manifest.tmp manifest.json
+          fi
+          [ -f versions.json ] || echo '{}' > versions.json
+          jq --tab --arg v "${version}" --arg m "$(jq -r .minAppVersion manifest.json)" '.[$v] = $m' versions.json > versions.tmp
+          mv versions.tmp versions.json
+          if [ -n "$(git status --porcelain manifest.json versions.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add manifest.json versions.json
+            git commit -m "Release ${version}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          git tag "${version}"
+          git push origin "${version}"
+          gh workflow run release.yml --ref "${version}"

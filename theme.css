@@ -96,7 +96,6 @@ body {
 	--inline-title-weight: 200;
 
 	--font-text: 'segoe ui', sans-serif;
-	--font-text-size: 14px !important;
 
 	--file-line-width:600px;
 
@@ -314,3 +313,13 @@ body {
 
 
   
+
+/* Obsidian sets --font-text-size inline on body, which beats a body rule.
+   Setting it, and --font-preferred-size which copies it, on child elements
+   overrides the inherited values without !important. */
+.app-container,
+.modal-container,
+.popover {
+  --font-text-size: 14px;
+  --font-preferred-size: var(--font-text-size);
+}
